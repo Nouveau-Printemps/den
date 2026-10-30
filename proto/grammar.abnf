@@ -1,0 +1,22 @@
+packet_length = 2OCTET
+flags = OCTET
+body = 1*65536OCTET
+
+message = packet_length flags
+
+json = 2*OCTET ; is a valid json object
+
+code = OCTET
+
+; command codes
+hello = 0
+authn = 1
+
+; response code
+ok = 0
+invalid = 1 ; invalid message
+bad = 2 ; bad user input
+internal_error = 3
+
+command = message code json
+response = message code json
