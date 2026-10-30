@@ -5,8 +5,6 @@ import (
 	"errors"
 	"io"
 	"net"
-
-	"github.com/nouveau-printemps/den/proto"
 )
 
 type Client struct {
@@ -40,16 +38,16 @@ func DialTLS(clientname, network, address string, cfg *tls.Config) (*Client, err
 }
 
 func (c *Client) hello(servername string) error {
-	err := proto.SendMessage(c.conn, proto.CodeHello, proto.CommandHello{Name: servername})
+	err := SendMessage(c.conn, CodeHello, CommandHello{Name: servername})
 	if err != nil {
 		return err
 	}
-	msg, err := proto.ReadMessage(c.conn)
+	msg, err := ReadMessage(c.conn)
 	if err != nil {
 		return err
 	}
 	_, _ = io.ReadAll(msg.Body)
-	if msg.Code != uint8(proto.CodeOk) {
+	if msg.Code != uint8(CodeOk) {
 		return errors.New("den: cannot connect to server")
 	}
 	return nil
@@ -61,33 +59,33 @@ func (c *Client) Close() error {
 
 // Authn verifies the login credentials.
 func (c *Client) Authn(username, password string) (bool, error) {
-	err := proto.SendMessage(c.conn, proto.CodeAuthn, proto.CommandAuthn{
+	err := SendMessage(c.conn, CodeAuthn, CommandAuthn{
 		Username: username,
 		Password: password,
 	})
 	if err != nil {
 		return false, err
 	}
-	msg, err := proto.ReadMessage(c.conn)
+	msg, err := ReadMessage(c.conn)
 	if err != nil {
 		return false, err
 	}
-	switch proto.ResponseCode(msg.Code) {
-	case proto.CodeOk:
+	switch ResponseCode(msg.Code) {
+	case CodeOk:
 		_, _ = io.ReadAll(msg.Body)
 		return true, nil
-	case proto.CodeBad:
+	case CodeBad:
 		_, _ = io.ReadAll(msg.Body)
 		return false, nil
-	case proto.CodeInternalError:
-		e, err := msg.As[*proto.ResponseError]()
+	case CodeInternalError:
+		e, err := msg.As[*ResponseError]()
 		if err != nil {
 			return false, err
 		}
 		return false, e
-	case proto.CodeInvalid:
+	case CodeInvalid:
 		_, _ = io.ReadAll(msg.Body)
-		return false, proto.ErrInvalidMessage
+		return false, ErrInvalidMessage
 	default:
 		panic("invalid response code")
 	}

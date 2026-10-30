@@ -1,4 +1,4 @@
-package proto
+package den
 
 import (
 	"encoding/binary"

@@ -1,4 +1,4 @@
-package proto
+package den
 
 type ResponseCode uint8
 
@@ -21,5 +21,5 @@ func (e *ResponseError) Error() string {
 }
 
 type ResponseAuthn struct {
-	Message string `json:"message,omitempty"`
+	Key *string `json:"pgp_key,omitempty"`
 }
