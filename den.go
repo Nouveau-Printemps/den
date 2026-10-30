@@ -58,34 +58,32 @@ func (c *Client) Close() error {
 }
 
 // Authn verifies the login credentials.
-func (c *Client) Authn(username, password string) (bool, error) {
+func (c *Client) Authn(username, password string) (*ResponseAuthn, error) {
 	err := SendMessage(c.conn, CodeAuthn, CommandAuthn{
 		Username: username,
 		Password: password,
 	})
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	msg, err := ReadMessage(c.conn)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	switch ResponseCode(msg.Code) {
 	case CodeOk:
-		_, _ = io.ReadAll(msg.Body)
-		return true, nil
+		return msg.As[*ResponseAuthn]()
 	case CodeBad:
-		_, _ = io.ReadAll(msg.Body)
-		return false, nil
+		return nil, nil
 	case CodeInternalError:
 		e, err := msg.As[*ResponseError]()
 		if err != nil {
-			return false, err
+			return nil, err
 		}
-		return false, e
+		return nil, e
 	case CodeInvalid:
 		_, _ = io.ReadAll(msg.Body)
-		return false, ErrInvalidMessage
+		return nil, ErrInvalidMessage
 	default:
 		panic("invalid response code")
 	}

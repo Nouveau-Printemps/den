@@ -46,5 +46,6 @@ func SendMessage[C ResponseCode | CommandCode](w io.Writer, code C, data any) er
 	if err != nil {
 		return err
 	}
-	return w.Write(b)
+	_, err = w.Write(b)
+	return err
 }
