@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"go/version"
 	"log/slog"
 	"net"
 	"os"
@@ -76,7 +75,7 @@ func main() {
 	}
 	errc := make(chan error)
 	go func() {
-		errc <- Serve(l)
+		errc <- Serve(&cfg, l)
 	}()
 	slog.Info("started")
 	select {
@@ -87,12 +86,20 @@ func main() {
 	slog.Info("stopping")
 }
 
-func Serve(l net.Listener) error {
+func Serve(cfg *Config, l net.Listener) error {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
 			return err
 		}
-		//TODO: new session
+		go func() {
+			s, err := NewSession(conn)
+			defer conn.Close()
+			if err != nil {
+				slog.Error("handling connection", "error", err)
+				return
+			}
+			s.Handle(cfg, conn)
+		}()
 	}
 }

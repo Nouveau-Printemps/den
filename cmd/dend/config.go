@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log/slog"
+	"os"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -32,4 +34,19 @@ func (cfg *Config) Authn(username, password string) *User {
 		return nil
 	}
 	return u
+}
+
+func (u *User) Key() *string {
+	if u.PGPPubKey != nil {
+		return u.PGPPubKey
+	}
+	if u.PGPPubKeyFile != nil {
+		b, err := os.ReadFile(*u.PGPPubKeyFile)
+		if err != nil {
+			slog.Warn("reading pgp key file", "error", err, "file", *u.PGPPubKeyFile)
+			return nil
+		}
+		return new(string(b))
+	}
+	return nil
 }
