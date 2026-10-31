@@ -23,6 +23,7 @@ type User struct {
 	PGPPubKey     *string  `toml:"pgp_pub_key"`
 	PGPPubKeyFile *string  `toml:"pgp_pub_key_file"`
 	Groups        []string `toml:"groups"`
+	Data          any      `toml:"data"`
 }
 
 func (cfg *Config) Exists(username string) *User {

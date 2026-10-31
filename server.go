@@ -1,5 +1,10 @@
 package den
 
+import (
+	. "encoding/json/jsontext"
+	"encoding/json/v2"
+)
+
 type ResponseCode uint8
 
 // Available [ResponseCode]
@@ -22,5 +27,36 @@ func (e *ResponseError) Error() string {
 
 type ResponseAuthn struct {
 	Key    *string  `json:"pgp_key,omitempty"`
-	Groups []string `json:"groups"`
+	Groups []string `json:"groups,omitempty"`
+	// RawData is populated when unmarshalled
+	RawData Value `json:"data,omitempty"`
+	// CustomData is used when marshalled.
+	CustomData any `json:"-"`
+}
+
+func (r *ResponseAuthn) MarshalJSONTo(e *Encoder) error {
+	e.WriteToken(BeginObject)
+	if r.Key != nil {
+		e.WriteToken(String("pgp_key"))
+		e.WriteToken(String(*r.Key))
+	}
+	if len(r.Groups) != 0 {
+		e.WriteToken(String("groups"))
+		e.WriteToken(BeginArray)
+		for _, g := range r.Groups {
+			e.WriteToken(String(g))
+		}
+		e.WriteToken(EndArray)
+	}
+	if r.CustomData != nil {
+		out, err := json.Marshal(r.CustomData)
+		if err != nil {
+			return err
+		}
+		err = e.WriteValue(Value(out))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

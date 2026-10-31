@@ -3,3 +3,5 @@ password = "$2y$10$wWJy64n5j4pU2CscdWRq.er5Z2.V31U5Ntz5uTopLy1fMX87GQEDG"
 # pgp_pub_key = ""
 # pgp_pub_key_file = ""
 # groups = []
+# you can store any data here
+# [user.foo.data]
