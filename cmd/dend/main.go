@@ -2,14 +2,17 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"log/slog"
+	"log/syslog"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/BurntSushi/toml"
+	"github.com/nyttikord/logos"
 )
 
 var (
@@ -26,12 +29,23 @@ func init() {
 	flag.BoolVar(&verbose, "v", verbose, "increase verbosity")
 	flag.StringVar(&config, "config", config, "path to the config")
 	flag.StringVar(&address, "address", address, "address to listen to")
-	flag.UintVar(&uid, "user", uid, "uid to run as")
-	flag.UintVar(&gid, "group", gid, "gid to run as")
+	flag.UintVar(&uid, "uid", uid, "uid to run as")
+	flag.UintVar(&gid, "gid", gid, "gid to run as")
 }
 
 func main() {
 	flag.Parse()
+	lvl := slog.LevelInfo
+	if verbose {
+		lvl = slog.LevelDebug
+	}
+	logos, err := logos.NewSyslog("dend", syslog.LOG_AUTH, &logos.Options{
+		Level: lvl,
+	})
+	if err != nil {
+		panic(err)
+	}
+	slog.SetDefault(slog.New(logos))
 	ctx, cancel := signal.NotifyContext(
 		context.Background(), os.Interrupt, os.Kill, syscall.SIGTERM,
 	)
@@ -39,6 +53,12 @@ func main() {
 	defer cancel()
 	var cfg Config
 	data, err := toml.DecodeFile(config, &cfg)
+	if errors.Is(err, os.ErrNotExist) {
+		err = os.WriteFile(config, defaultConfig, 0o600)
+		if err == nil {
+			err = toml.Unmarshal(defaultConfig, &cfg)
+		}
+	}
 	if err != nil {
 		panic(err)
 	}
@@ -54,6 +74,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer l.Close()
 	if unix {
 		err = os.Chmod(address, 0o660)
 		if err != nil {

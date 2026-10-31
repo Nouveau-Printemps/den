@@ -1,12 +1,16 @@
 package main
 
 import (
+	_ "embed"
 	"log/slog"
 	"os"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
+
+//go:embed default.toml
+var defaultConfig []byte
 
 type Config struct {
 	Users map[string]*User `toml:"user"`
