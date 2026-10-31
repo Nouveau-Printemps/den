@@ -7,4 +7,4 @@ dev-log:
     journalctl --user -S today --facility auth
 
 build:
-    go build ./cmd/dend -ldflags "-s -w -X main.Version={{ version }}"
+    cd cmd/dend && go build -ldflags "-s -w -X main.Version={{ version }}" -o ../../dend .

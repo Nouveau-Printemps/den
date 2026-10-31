@@ -74,6 +74,27 @@ func (s *Session) Handle(cfg *Config, conn net.Conn) {
 			if err != nil {
 				slog.Error("responding", "error", err)
 			}
+		case den.CodeExists:
+			exists, err := msg.As[*den.CommandExists]()
+			if err != nil {
+				den.SendMessage(conn, den.CodeInvalid, &den.ResponseError{
+					Details: "invalid body",
+				})
+				continue
+			}
+			user := cfg.Exists(exists.Username)
+			if user == nil {
+				err = den.SendMessage(conn, den.CodeBad, &den.ResponseError{
+					Details: "not found",
+				})
+			} else {
+				err = den.SendMessage(conn, den.CodeOk, &den.ResponseAuthn{
+					Key: user.Key(),
+				})
+			}
+			if err != nil {
+				slog.Error("responding", "error", err)
+			}
 		default:
 			den.SendMessage(conn, den.CodeInvalid, &den.ResponseError{
 				Details: "invalid code",

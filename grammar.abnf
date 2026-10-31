@@ -11,6 +11,7 @@ code = OCTET
 ; command codes
 hello = 0
 authn = 1
+exists = 2
 
 ; response code
 ok = 0

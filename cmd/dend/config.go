@@ -22,9 +22,8 @@ type User struct {
 	PGPPubKeyFile *string `toml:"pgp_pub_key_file"`
 }
 
-func (cfg *Config) Exists(username string) bool {
-	_, ok := cfg.Users[username]
-	return ok
+func (cfg *Config) Exists(username string) *User {
+	return cfg.Users[username]
 }
 
 func (cfg *Config) Authn(username, password string) *User {

@@ -57,6 +57,33 @@ func (c *Client) Close() error {
 	return c.conn.Close()
 }
 
+func (c *Client) response[T any]() (v T, err error) {
+	msg, err := ReadMessage(c.conn)
+	if err != nil {
+		return
+	}
+	switch ResponseCode(msg.Code) {
+	case CodeOk:
+		return msg.As[T]()
+	case CodeBad:
+		_, _ = io.ReadAll(msg.Body)
+		return
+	case CodeInternalError:
+		var e error
+		e, err = msg.As[*ResponseError]()
+		if err != nil {
+			return
+		}
+		return v, e
+	case CodeInvalid:
+		_, _ = io.ReadAll(msg.Body)
+		return v, ErrInvalidMessage
+	default:
+		panic("invalid response code")
+	}
+
+}
+
 // Authn verifies the login credentials.
 func (c *Client) Authn(username, password string) (*ResponseAuthn, error) {
 	err := SendMessage(c.conn, CodeAuthn, CommandAuthn{
@@ -66,25 +93,16 @@ func (c *Client) Authn(username, password string) (*ResponseAuthn, error) {
 	if err != nil {
 		return nil, err
 	}
-	msg, err := ReadMessage(c.conn)
+	return c.response[*ResponseAuthn]()
+}
+
+// Exists verifies if a user exists.
+func (c *Client) Exists(username string) (*ResponseAuthn, error) {
+	err := SendMessage(c.conn, CodeExists, CommandExists{
+		Username: username,
+	})
 	if err != nil {
 		return nil, err
 	}
-	switch ResponseCode(msg.Code) {
-	case CodeOk:
-		return msg.As[*ResponseAuthn]()
-	case CodeBad:
-		return nil, nil
-	case CodeInternalError:
-		e, err := msg.As[*ResponseError]()
-		if err != nil {
-			return nil, err
-		}
-		return nil, e
-	case CodeInvalid:
-		_, _ = io.ReadAll(msg.Body)
-		return nil, ErrInvalidMessage
-	default:
-		panic("invalid response code")
-	}
+	return c.response[*ResponseAuthn]()
 }
