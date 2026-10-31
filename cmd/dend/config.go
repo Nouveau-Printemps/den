@@ -2,10 +2,12 @@ package main
 
 import (
 	_ "embed"
+	"errors"
 	"log/slog"
 	"os"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -52,4 +54,21 @@ func (u *User) Key() *string {
 		return new(string(b))
 	}
 	return nil
+}
+
+func Parse() (cfg *Config) {
+	data, err := toml.DecodeFile(config, &cfg)
+	if errors.Is(err, os.ErrNotExist) {
+		err = os.WriteFile(config, defaultConfig, 0o600)
+		if err == nil {
+			err = toml.Unmarshal(defaultConfig, &cfg)
+		}
+	}
+	if err != nil {
+		panic(err)
+	}
+	for _, k := range data.Undecoded() {
+		slog.Warn("key not decoded", "key", k)
+	}
+	return
 }

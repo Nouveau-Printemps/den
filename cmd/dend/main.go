@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"log/slog"
 	"log/syslog"
@@ -11,7 +10,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/BurntSushi/toml"
 	"github.com/nyttikord/logos"
 )
 
@@ -51,26 +49,25 @@ func main() {
 	)
 	slog.Info("starting...", "version", Version)
 	defer cancel()
-	var cfg Config
-	data, err := toml.DecodeFile(config, &cfg)
-	if errors.Is(err, os.ErrNotExist) {
-		err = os.WriteFile(config, defaultConfig, 0o600)
-		if err == nil {
-			err = toml.Unmarshal(defaultConfig, &cfg)
-		}
-	}
-	if err != nil {
-		panic(err)
-	}
-	for _, k := range data.Undecoded() {
-		slog.Warn("key not decoded", "key", k)
-	}
-	ctx = withConfig(withLogger(ctx, slog.Default()), &cfg)
+	cfg := Parse()
+	ctx = withConfig(withLogger(ctx, slog.Default()), cfg)
 	network := "tcp"
 	unix := address[0] == '/'
 	if unix {
 		network = "unix"
 	}
+	go func() {
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, syscall.SIGHUP)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-sig:
+				*cfg = *Parse()
+			}
+		}
+	}()
 	l, err := new(net.ListenConfig).Listen(ctx, network, address)
 	if err != nil {
 		panic(err)
