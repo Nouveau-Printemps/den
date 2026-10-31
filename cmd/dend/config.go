@@ -19,9 +19,10 @@ type Config struct {
 }
 
 type User struct {
-	Password      string  `toml:"password"`
-	PGPPubKey     *string `toml:"pgp_pub_key"`
-	PGPPubKeyFile *string `toml:"pgp_pub_key_file"`
+	Password      string   `toml:"password"`
+	PGPPubKey     *string  `toml:"pgp_pub_key"`
+	PGPPubKeyFile *string  `toml:"pgp_pub_key_file"`
+	Groups        []string `toml:"groups"`
 }
 
 func (cfg *Config) Exists(username string) *User {

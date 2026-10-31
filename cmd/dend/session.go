@@ -88,7 +88,8 @@ func (s *Session) Handle(ctx context.Context, conn net.Conn) {
 				})
 			} else {
 				err = den.SendMessage(conn, den.CodeOk, &den.ResponseAuthn{
-					Key: user.Key(),
+					Key:    user.Key(),
+					Groups: user.Groups,
 				})
 			}
 			if err != nil {

@@ -21,5 +21,6 @@ func (e *ResponseError) Error() string {
 }
 
 type ResponseAuthn struct {
-	Key *string `json:"pgp_key,omitempty"`
+	Key    *string  `json:"pgp_key,omitempty"`
+	Groups []string `json:"groups"`
 }
