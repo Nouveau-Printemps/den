@@ -22,6 +22,9 @@ var (
 	ErrInvalidMessage = errors.New("invalid message")
 )
 
+// ReadMessage is a low-level function reading a [Message] from an [io.Reader].
+//
+// For a higher-level usage, see [Client].
 func ReadMessage(r io.Reader) (*Message, error) {
 	var header [4]byte
 	_, err := io.ReadFull(r, header[:])
@@ -34,6 +37,9 @@ func ReadMessage(r io.Reader) (*Message, error) {
 	return &Message{Code: code, Body: io.LimitReader(r, int64(ln))}, nil
 }
 
+// SendMessage is a low-level function sending a [Message] to an [io.Writer].
+//
+// For a higher-level usage, see [Client].
 func SendMessage[C ResponseCode | CommandCode](w io.Writer, code C, data any) error {
 	b, err := json.Marshal(data)
 	if err != nil {

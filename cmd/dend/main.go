@@ -65,6 +65,7 @@ func main() {
 	for _, k := range data.Undecoded() {
 		slog.Warn("key not decoded", "key", k)
 	}
+	ctx = withConfig(withLogger(ctx, slog.Default()), &cfg)
 	network := "tcp"
 	unix := address[0] == '/'
 	if unix {
@@ -96,7 +97,7 @@ func main() {
 	}
 	errc := make(chan error)
 	go func() {
-		errc <- Serve(&cfg, l)
+		errc <- Serve(ctx, l)
 	}()
 	slog.Info("started")
 	select {
@@ -107,7 +108,7 @@ func main() {
 	slog.Info("stopping")
 }
 
-func Serve(cfg *Config, l net.Listener) error {
+func Serve(ctx context.Context, l net.Listener) error {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
@@ -117,10 +118,17 @@ func Serve(cfg *Config, l net.Listener) error {
 			s, err := NewSession(conn)
 			defer conn.Close()
 			if err != nil {
-				slog.Error("handling connection", "error", err)
+				logger(ctx).Error("handling connection", "error", err)
 				return
 			}
-			s.Handle(cfg, conn)
+			s.Handle(
+				withLogger(ctx, logger(ctx).With(
+					"module", "session",
+					"remote", conn.RemoteAddr(),
+					"name", s.name,
+				)),
+				conn,
+			)
 		}()
 	}
 }

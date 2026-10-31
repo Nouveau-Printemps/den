@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -40,10 +41,29 @@ func NewSession(conn net.Conn) (*Session, error) {
 	return &Session{hello.Name, conn}, nil
 }
 
-func (s *Session) Handle(cfg *Config, conn net.Conn) {
+func (s *Session) Handle(ctx context.Context, conn net.Conn) {
+	l := logger(ctx)
+	cfg := cfg(ctx)
+	msgc := make(chan *den.Message)
+	errc := make(chan error)
 	for {
-		msg, err := den.ReadMessage(conn)
-		if errors.Is(err, io.EOF) {
+		go func() {
+			msg, err := den.ReadMessage(conn)
+			if err != nil {
+				errc <- err
+				return
+			}
+			msgc <- msg
+		}()
+		var msg *den.Message
+		var err error
+		select {
+		case <-ctx.Done():
+			return
+		case msg = <-msgc:
+		case err = <-errc:
+		}
+		if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
 			return
 		}
 		if err != nil {
@@ -72,7 +92,7 @@ func (s *Session) Handle(cfg *Config, conn net.Conn) {
 				})
 			}
 			if err != nil {
-				slog.Error("responding", "error", err)
+				l.Error("responding", "error", err)
 			}
 		case den.CodeExists:
 			exists, err := msg.As[*den.CommandExists]()
@@ -93,7 +113,7 @@ func (s *Session) Handle(cfg *Config, conn net.Conn) {
 				})
 			}
 			if err != nil {
-				slog.Error("responding", "error", err)
+				l.Error("responding", "error", err)
 			}
 		default:
 			den.SendMessage(conn, den.CodeInvalid, &den.ResponseError{

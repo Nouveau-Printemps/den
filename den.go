@@ -7,6 +7,11 @@ import (
 	"net"
 )
 
+// Client is connected to a den server.
+//
+// Use [Dial] or [DialTLS] to connect a new one.
+//
+// A Client is safe for concurrent use.
 type Client struct {
 	conn net.Conn
 }
@@ -53,6 +58,8 @@ func (c *Client) hello(servername string) error {
 	return nil
 }
 
+// Close a [Client].
+// It must not be used after.
 func (c *Client) Close() error {
 	return c.conn.Close()
 }
@@ -81,7 +88,6 @@ func (c *Client) response[T any]() (v T, err error) {
 	default:
 		panic("invalid response code")
 	}
-
 }
 
 // Authn verifies the login credentials.
