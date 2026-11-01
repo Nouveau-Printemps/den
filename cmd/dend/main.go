@@ -16,7 +16,7 @@ import (
 var (
 	verbose bool
 	config  string = "/etc/dend/config.toml"
-	address string = "/run/dend.sock"
+	address string = "/run/den/dend.sock"
 )
 
 var Version = "dev"
