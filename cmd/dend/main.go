@@ -17,8 +17,6 @@ var (
 	verbose bool
 	config  string = "/etc/dend/config.toml"
 	address string = "/run/dend.sock"
-	uid     uint   = 0
-	gid     uint   = 0
 )
 
 var Version = "dev"
@@ -27,8 +25,6 @@ func init() {
 	flag.BoolVar(&verbose, "v", verbose, "increase verbosity")
 	flag.StringVar(&config, "config", config, "path to the config")
 	flag.StringVar(&address, "address", address, "address to listen to")
-	flag.UintVar(&uid, "uid", uid, "uid to run as")
-	flag.UintVar(&gid, "gid", gid, "gid to run as")
 }
 
 func main() {
@@ -78,19 +74,6 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		err = os.Chown(address, int(uid), int(gid))
-		if err != nil {
-			panic(err)
-		}
-	}
-	slog.Debug("changing uid and gid", "uid", uid, "gid", gid)
-	err = syscall.Setgid(int(gid))
-	if err != nil {
-		panic(err)
-	}
-	err = syscall.Setuid(int(uid))
-	if err != nil {
-		panic(err)
 	}
 	errc := make(chan error)
 	go func() {
