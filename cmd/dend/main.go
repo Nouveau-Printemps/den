@@ -84,11 +84,11 @@ func main() {
 		}
 	}
 	slog.Debug("changing uid and gid", "uid", uid, "gid", gid)
-	err = syscall.Setuid(int(uid))
+	err = syscall.Setgid(int(gid))
 	if err != nil {
 		panic(err)
 	}
-	err = syscall.Setgid(int(gid))
+	err = syscall.Setuid(int(uid))
 	if err != nil {
 		panic(err)
 	}

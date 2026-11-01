@@ -8,3 +8,6 @@ dev-log:
 
 build:
     cd cmd/dend && go build -ldflags "-s -w -X main.Version={{ version }}" -o ../../dend .
+
+install:
+    install -m 755 ./dend /usr/local/sbin/
