@@ -4,8 +4,12 @@ dev:
 dev-log:
     journalctl --user -S today --facility auth
 
-build:
-    cd cmd/dend && go build -ldflags "-s -w -X main.Version={{ `git describe --tags` }}" -o ../../dend .
+build: build-server
+    mv pkg/server/server dend
+
+[working-directory: 'pkg/server']
+build-server:
+    go build -ldflags "-s -w -X main.Version={{ `git describe --tags` }}" .
 
 install:
     install -m 755 ./dend /usr/local/sbin/

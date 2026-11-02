@@ -1,4 +1,4 @@
-module github.com/Nouveau-Printemps/den/cmd/dend
+module github.com/Nouveau-Printemps/den/pkg/server
 
 go 1.27.3
 
