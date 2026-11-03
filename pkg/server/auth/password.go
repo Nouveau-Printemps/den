@@ -128,7 +128,7 @@ func (s Scrypt) Compare(encodedHash, pass string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return subtle.ConstantTimeCompare(hash, got) == 0, nil
+	return subtle.ConstantTimeCompare(hash, []byte(s.Encode(got, salt))) == 0, nil
 }
 
 type Argon2id struct {
@@ -199,7 +199,7 @@ func (a Argon2id) Compare(encodedHash, pass string) (bool, error) {
 		return false, err
 	}
 	got := argon2.IDKey([]byte(pass), salt, a.T, a.M, a.P, 32)
-	return subtle.ConstantTimeCompare(hash, got) == 0, nil
+	return subtle.ConstantTimeCompare(hash, []byte(a.Encode(got, salt))) == 0, nil
 }
 
 // PasswordAlgorithm returns the [Password] that supports the format of the given hashed password.
