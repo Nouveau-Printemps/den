@@ -1,3 +1,11 @@
+// Package auth implements common heplers to work with hashed passwords.
+//
+// The main interface is [Password] which represents an abstract key-derivation algorithm.
+// It is implemented by [Argon2id], [Scrypt] and [Bcrypt].
+//
+// The interface [PasswordEncoder] represents a type that can encode and decode passwords.
+// It follows bcrypt standard format.
+// You can get the [Password] linked with a hashed format with [PasswordAlgorithm].
 package auth
 
 import (
@@ -15,6 +23,10 @@ import (
 	"golang.org/x/crypto/scrypt"
 )
 
+// Password represents an abstract key-derivation algorithm.
+// Implemented by [Argon2id], [Scrypt] and [Bcrypt].
+//
+// See [PasswordEncoder].
 type Password interface {
 	Hash(pass string) (string, error)
 	Compare(hash, pass string) (bool, error)
@@ -25,6 +37,10 @@ var (
 	defaultEncoder           = base64.StdEncoding.WithPadding(base64.NoPadding)
 )
 
+// PasswordEncoder can encode and decode a password in the bcrypt standard format.
+// Implemented by [Argon2id] and [Scrypt].
+//
+// See [PasswordAlgorithm].
 type PasswordEncoder interface {
 	Encode(hash []byte, salt []byte) string
 	Decode(string) (hash, salt []byte, err error)
@@ -186,6 +202,7 @@ func (a Argon2id) Compare(encodedHash, pass string) (bool, error) {
 	return subtle.ConstantTimeCompare(hash, got) == 0, nil
 }
 
+// PasswordAlgorithm returns the [Password] that supports the format of the given hashed password.
 func PasswordAlgorithm(pass string) Password {
 	switch {
 	case strings.HasPrefix(pass, "$argon2id"):

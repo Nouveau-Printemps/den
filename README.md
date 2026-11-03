@@ -25,4 +25,5 @@ Only Linux is tested.
 
 The root folder contains the formal definition of the protocol and a Go client library.
 
-[`cmd/dend/`](./cmd/dend/) is a separate Go module: it implements a complete server with the root library.
+[`pkg/server/`](./pkg/server/) is a separate Go module: it implements a complete server with the root library.
+It provides an [`auth`](./pkg/server/auth) lib to deal with various hashed passwords.

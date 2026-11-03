@@ -5,7 +5,7 @@
 ## Usage
 
 User information is stored in a config file: `/etc/dend/config.toml` by default.
-It contains its username, its password hashed with bcrypt, its groups and its public PGP key.
+It contains its username, its password hashed with argon2id, scrypt or bcrypt, its groups and its public PGP key.
 
 ```toml
 [user]
