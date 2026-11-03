@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/Nouveau-Printemps/den/pkg/server/auth"
 )
 
 //go:embed default.toml
@@ -36,9 +36,13 @@ func (cfg *Config) Authn(username, password string) *User {
 		time.Sleep(1 * time.Second)
 		return nil
 	}
-	if bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)) != nil {
+	ok, err := auth.PasswordAlgorithm(u.Password).Compare(u.Password, password)
+	if err != nil {
 		time.Sleep(1 * time.Second)
 		return nil
+	}
+	if !ok {
+		u = nil
 	}
 	return u
 }
