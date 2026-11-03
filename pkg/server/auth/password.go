@@ -209,7 +209,7 @@ func PasswordAlgorithm(pass string) Password {
 		return Argon2id{}
 	case strings.HasPrefix(pass, "$scrypt"):
 		return Scrypt{}
-	case strings.HasPrefix(pass, "$2y"):
+	case strings.HasPrefix(pass, "$2"):
 		return Bcrypt{}
 	default:
 		panic("unsupported password algorithm: " + pass)
