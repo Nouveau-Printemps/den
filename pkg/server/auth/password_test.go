@@ -28,7 +28,21 @@ func FuzzBcrypt(f *testing.F) {
 }
 
 func fuzz(f *testing.F, algo Password) {
+	_, ok := algo.(Bcrypt)
+	var mp func(string) string
+	if ok {
+		mp = func(s string) string {
+			if len(s) <= 72 {
+				return s
+			} else {
+				return s[:72]
+			}
+		}
+	}
 	f.Fuzz(func(t *testing.T, s string) {
+		if mp != nil {
+			s = mp(s)
+		}
 		hash, err := algo.Hash(s)
 		if err != nil {
 			t.Fatal(err)
