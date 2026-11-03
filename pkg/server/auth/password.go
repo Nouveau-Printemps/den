@@ -156,7 +156,7 @@ func (a Argon2id) Encode(hash, salt []byte) string {
 	)
 }
 
-var argon2idFormat = regexp.MustCompile(`^\$argon2id\$v=19$m=(\d+),t=(\d+),p=(\d+)\$([^$]+)\$([^$]+)$`)
+var argon2idFormat = regexp.MustCompile(`^\$argon2id\$v=19\$m=(\d+),t=(\d+),p=(\d+)\$([^$]+)\$([^$]+)$`)
 
 func (a *Argon2id) Decode(raw string) (hash, salt []byte, err error) {
 	f := argon2idFormat.FindStringSubmatch(raw)
